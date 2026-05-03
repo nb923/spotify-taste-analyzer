@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Chamber's Role Advisor — Valorant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg-deep: #0a0908;
+    --bg-card: #141210;
+    --bg-elevated: #1c1916;
+    --gold: #d4af37;
+    --gold-bright: #f0c84a;
+    --gold-dim: #8a7128;
+    --your-team: #6a8d4f;
+    --your-team-bright: #8fb96d;
+    --your-team-dim: rgba(143, 185, 109, 0.12);
+    --enemy: #b8344c;
+    --enemy-bright: #d44d65;
+    --enemy-dim: rgba(212, 77, 101, 0.12);
+    --text: #e8e3d8;
+    --text-dim: #8a8074;
+    --border: rgba(212, 175, 55, 0.2);
+  }
+
+  html, body {
+    background: var(--bg-deep);
+    color: var(--text);
+    font-family: 'Manrope', -apple-system, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(184, 52, 76, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0, transparent 2px, rgba(255,255,255,0.005) 2px, rgba(255,255,255,0.005) 4px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding-top: 1rem;
+  }
+
+  .monogram {
+    font-family: 'Cinzel', serif;
+    font-size: 3rem;
+    font-weight: 600;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+    text-shadow: 0 0 40px rgba(212, 175, 55, 0.4);
+    line-height: 1;
+  }
+
+  .ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin: 0.75rem 0;
+  }
+
+  .ornament-line {
+    height: 1px;
+    width: 50px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+
+  .ornament-diamond {
+    width: 5px;
+    height: 5px;
+    background: var(--gold);
+    transform: rotate(45deg);
+  }
+
+  h1 {
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: clamp(1.5rem, 5vw, 2.25rem);
+    letter-spacing: 0.18em;
+    color: var(--text);
+    text-transform: uppercase;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    margin-top: 0.5rem;
+    font-weight: 300;
+  }
+
+  /* Mode Toggle */
+  .mode-toggle {
+    display: flex;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 4px;
+    max-width: 380px;
+    margin: 0 auto 2rem;
+    position: relative;
+  }
+
+  .mode-btn {
+    flex: 1;
+    padding: 0.875rem 1rem;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.3s;
+    position: relative;
+    z-index: 2;
+    text-transform: uppercase;
+  }
+
+  .mode-btn.active {
+    color: var(--bg-deep);
+  }
+
+  .mode-indicator {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+  }
+
+  .mode-toggle[data-mode="defense"] .mode-indicator {
+    transform: translateX(100%);
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .legend-swatch {
+    width: 10px;
+    height: 10px;
+    transform: rotate(45deg);
+  }
+
+  /* Section title */
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+
+  /* Roles row */
+  .roles-section {
+    margin-bottom: 2rem;
+  }
+
+  .roles-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .role-pill {
+    padding: 0.45rem 1.1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* Conditions Grid */
+  .conditions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 0.625rem;
+    margin-bottom: 2rem;
+  }
+
+  .condition {
+    padding: 0.85rem 0.875rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    text-align: left;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    line-height: 1.25;
+    user-select: none;
+  }
+
+  .condition-marker {
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+    transform: rotate(45deg);
+    transition: all 0.2s;
+  }
+
+  .condition.your .condition-marker { background: var(--your-team-bright); }
+  .condition.enemy .condition-marker { background: var(--enemy-bright); }
+
+  .condition:hover {
+    border-color: var(--gold-dim);
+  }
+
+  .condition.active.your {
+    background: var(--your-team-dim);
+    border-color: var(--your-team-bright);
+    box-shadow: inset 0 0 0 1px var(--your-team-bright);
+    color: var(--your-team-bright);
+  }
+
+  .condition.active.enemy {
+    background: var(--enemy-dim);
+    border-color: var(--enemy-bright);
+    box-shadow: inset 0 0 0 1px var(--enemy-bright);
+    color: var(--enemy-bright);
+  }
+
+  .condition.active .condition-marker {
+    transform: rotate(45deg) scale(1.3);
+  }
+
+  /* Result */
+  .result-section {
+    background: linear-gradient(135deg, var(--bg-card), var(--bg-elevated));
+    border: 1px solid var(--gold);
+    padding: 1.75rem 1.25rem;
+    position: relative;
+    margin-bottom: 1rem;
+  }
+
+  .result-section::before,
+  .result-section::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--gold);
+  }
+
+  .result-section::before {
+    top: -1px; left: -1px;
+    border-right: none;
+    border-bottom: none;
+  }
+
+  .result-section::after {
+    bottom: -1px; right: -1px;
+    border-left: none;
+    border-top: none;
+  }
+
+  .result-empty {
+    text-align: center;
+    color: var(--text-dim);
+    padding: 1rem;
+    font-style: italic;
+    letter-spacing: 0.05em;
+    font-size: 0.9rem;
+  }
+
+  .result-header {
+    text-align: center;
+    margin-bottom: 1.25rem;
+  }
+
+  .result-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .result-roles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+
+  .result-role {
+    padding: 1.1rem 1.25rem;
+    background: var(--bg-deep);
+    border-left: 3px solid var(--gold);
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .result-role.alt {
+    border-left-color: var(--gold-dim);
+    opacity: 0.85;
+  }
+
+  .result-role-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .result-role-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1.35rem;
+    letter-spacing: 0.12em;
+    color: var(--gold-bright);
+    text-transform: uppercase;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .result-role.alt .result-role-name {
+    color: var(--gold);
+    font-size: 1.2rem;
+  }
+
+  .result-role-tag {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+  }
+
+  .result-role-desc {
+    color: var(--text);
+    line-height: 1.55;
+    font-size: 0.9rem;
+  }
+
+  .result-divider {
+    text-align: center;
+    color: var(--gold-dim);
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.5em;
+    margin: 0.125rem 0;
+    text-transform: uppercase;
+    position: relative;
+  }
+
+  .result-divider::before,
+  .result-divider::after {
+    content: '';
+    display: inline-block;
+    width: 30px;
+    height: 1px;
+    background: var(--gold-dim);
+    vertical-align: middle;
+    margin: 0 0.75rem;
+  }
+
+  .reset-btn {
+    display: block;
+    margin: 1.25rem auto 0;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 0.625rem 1.5rem;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 2.5rem;
+    color: var(--text-dim);
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  .footer-quote {
+    color: var(--gold-dim);
+  }
+
+  /* Mobile */
+  @media (max-width: 600px) {
+    .container { padding: 1.5rem 1rem 3rem; }
+    .conditions-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+    .condition {
+      font-size: 0.72rem;
+      padding: 0.7rem 0.6rem;
+      gap: 0.45rem;
+    }
+    .monogram { font-size: 2.5rem; }
+    .roles-row { gap: 0.4rem; }
+    .role-pill {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.6rem;
+    }
+    .mode-btn { padding: 0.75rem 0.5rem; font-size: 0.7rem; letter-spacing: 0.25em; }
+    .result-role-name { font-size: 1.15rem; }
+    .result-role.alt .result-role-name { font-size: 1rem; }
+    .legend { gap: 1rem; }
+    .legend-item { font-size: 0.65rem; }
+  }
+
+  @media (max-width: 360px) {
+    .conditions-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="monogram">C</div>
+      <div class="ornament">
+        <div class="ornament-line"></div>
+        <div class="ornament-diamond"></div>
+        <div class="ornament-line"></div>
+      </div>
+      <h1>Role Advisor</h1>
+      <div class="subtitle">Valorant · Round Strategy</div>
+    </header>
+
+    <div class="mode-toggle" data-mode="attack" id="mode-toggle">
+      <div class="mode-indicator"></div>
+      <button class="mode-btn active" data-mode="attack">Attack</button>
+      <button class="mode-btn" data-mode="defense">Defense</button>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-swatch" style="background: var(--your-team-bright)"></div>
+        Your Team
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" style="background: var(--enemy-bright)"></div>
+        Enemy Team
+      </div>
+    </div>
+
+    <div class="roles-section">
+      <div class="section-title">Possible Roles</div>
+      <div class="roles-row" id="roles-row"></div>
+    </div>
+
+    <div class="section-title">Tap What Applies</div>
+    <div class="conditions-grid" id="conditions-grid"></div>
+
+    <div class="result-section" id="result-section">
+      <div class="result-empty">Select conditions above to reveal your role</div>
+    </div>
+
+    <button class="reset-btn" id="reset-btn">Clear Selection</button>
+
+    <div class="footer">
+      <span class="footer-quote">"You don't take chances. You make them."</span><br>
+      — Chamber
+    </div>
+  </div>
+
+<script>
+  // ============================================
+  // DATA
+  // ============================================
+  const ROLES = {
+    attack: {
+      lurking: {
+        name: 'Lurking',
+        desc: 'Split off solo. Time the map, watch flank, and either grab a backstab pick or force a rotate. Stay off the radar — only show when it counts.'
+      },
+      second_entry: {
+        name: 'Second Entry',
+        desc: 'Trade behind your duelist. The instant they make contact, push in — clear the angles they couldn\'t and secure the trade kill.'
+      },
+      support: {
+        name: 'Support',
+        desc: 'Run the play. Smokes, flashes, recon — set up the entry, hold space for your duelists, and lock down post-plant. The round goes through your util.'
+      }
+    },
+    defense: {
+      first_blood: {
+        name: 'First Blood',
+        desc: 'Get the opening pick. Hold a hard angle, peek with intel, and put your team in a 5v4 from round start. Don\'t trade your life for nothing.'
+      },
+      multi_frag: {
+        name: 'Multi-Frag',
+        desc: 'Stack frags this round. Play for damage, take favorable trades, and rack up a 2K+. You\'re carrying the round on your gun.'
+      },
+      anchor: {
+        name: 'Anchor',
+        desc: 'Hold the site. Save util for post-plant or retake. Don\'t peek — make them come to you and stall until rotates arrive.'
+      }
+    }
+  };
+
+  // Each condition's roles array represents which Venn region it sits in
+  const CONDITIONS = {
+    attack: [
+      { id: 'over_rotating',   label: 'Over Rotating',         team: 'enemy', roles: ['lurking', 'second_entry'] },
+      { id: 'no_sentinels',    label: 'No Sentinels',          team: 'enemy', roles: ['lurking'] },
+      { id: 'fast_flanking',   label: 'Fast Flanking',         team: 'enemy', roles: ['lurking'] },
+      { id: 'eco_round_atk_y', label: 'Eco Round (You)',       team: 'your',  roles: ['lurking', 'second_entry'] },
+      { id: 'duelist_no_entry',label: "Duelist Won't Entry",   team: 'your',  roles: ['lurking', 'second_entry'] },
+      { id: 'struggling_site', label: 'Struggling On Site',    team: 'your',  roles: ['second_entry'] },
+      { id: 'eco_round_atk_e', label: 'Eco Round (Enemy)',     team: 'enemy', roles: ['second_entry', 'support'] },
+      { id: 'multi_sentinels', label: 'Multiple Sentinels',    team: 'your',  roles: ['second_entry', 'support'] },
+      { id: 'multi_duelist_a', label: 'Multiple Duelists',     team: 'your',  roles: ['lurking', 'support'] },
+      { id: 'skye_cypher_ult', label: 'Skye / Cypher ULT',     team: 'enemy', roles: ['second_entry', 'support'] },
+      { id: 'you_have_op_a',   label: 'You Have OP',           team: 'your',  roles: ['support'] },
+      { id: 'no_smokes',       label: 'No Smokes',             team: 'enemy', roles: ['support'] }
+    ],
+    defense: [
+      { id: 'not_watching_flank', label: 'Not Watching Flank', team: 'enemy', roles: ['first_blood', 'multi_frag'] },
+      { id: 'eco_round_def_y',    label: 'Eco Round (You)',    team: 'your',  roles: ['first_blood', 'multi_frag'] },
+      { id: 'needs_ult_orb',      label: 'Needs ULT Orb',      team: 'enemy', roles: ['first_blood'] },
+      { id: 'conditioned_enemy',  label: 'Conditioned Enemy',  team: 'your',  roles: ['multi_frag'] },
+      { id: 'losing_rounds',      label: 'Losing By Rounds',   team: 'your',  roles: ['multi_frag'] },
+      { id: 'you_have_op_d',      label: 'You Have OP',        team: 'your',  roles: ['first_blood', 'anchor'] },
+      { id: 'eco_round_def_e',    label: 'Eco Round (Enemy)',  team: 'enemy', roles: ['first_blood', 'anchor'] },
+      { id: 'multi_duelist_d',    label: 'Multiple Duelists',  team: 'your',  roles: ['first_blood', 'anchor'] },
+      { id: 'multi_initiators',   label: 'Multiple Initiators',team: 'enemy', roles: ['multi_frag', 'anchor'] },
+      { id: 'cant_hold_site',     label: "Can't Hold Site",    team: 'your',  roles: ['anchor'] },
+      { id: 'default_faking',     label: 'Default / Faking',   team: 'enemy', roles: ['anchor'] }
+    ]
+  };
+
+  // ============================================
+  // STATE
+  // ============================================
+  let mode = 'attack';
+  let selected = new Set();
+
+  // ============================================
+  // RENDER
+  // ============================================
+  const conditionsGrid = document.getElementById('conditions-grid');
+  const rolesRow = document.getElementById('roles-row');
+  const resultSection = document.getElementById('result-section');
+  const modeToggle = document.getElementById('mode-toggle');
+
+  function renderRoles() {
+    const roleList = ROLES[mode];
+    rolesRow.innerHTML = Object.values(roleList)
+      .map(r => `<div class="role-pill">${r.name}</div>`)
+      .join('');
+  }
+
+  function renderConditions() {
+    const conds = CONDITIONS[mode];
+    conditionsGrid.innerHTML = conds.map(c => `
+      <button class="condition ${c.team} ${selected.has(c.id) ? 'active' : ''}" data-id="${c.id}">
+        <span class="condition-marker"></span>
+        <span>${c.label}</span>
+      </button>
+    `).join('');
+
+    conditionsGrid.querySelectorAll('.condition').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        if (selected.has(id)) selected.delete(id);
+        else selected.add(id);
+        btn.classList.toggle('active');
+        renderResult();
+      });
+    });
+  }
+
+  function computeScores() {
+    const scores = {};
+    Object.keys(ROLES[mode]).forEach(r => scores[r] = 0);
+
+    const conds = CONDITIONS[mode];
+    selected.forEach(id => {
+      const c = conds.find(x => x.id === id);
+      if (!c) return;
+      // Each condition adds 1 vote to each role it sits in
+      c.roles.forEach(r => { scores[r] += 1; });
+    });
+    return scores;
+  }
+
+  function renderResult() {
+    if (selected.size === 0) {
+      resultSection.innerHTML = `<div class="result-empty">Select conditions above to reveal your role</div>`;
+      return;
+    }
+
+    const scores = computeScores();
+    const entries = Object.entries(scores)
+      .filter(([, v]) => v > 0)
+      .sort((a, b) => b[1] - a[1]);
+
+    if (entries.length === 0) {
+      resultSection.innerHTML = `<div class="result-empty">No clear role from current selection</div>`;
+      return;
+    }
+
+    const top = entries[0][1];
+    // Tied roles share top score
+    const winners = entries.filter(([, v]) => v === top).map(([k]) => k);
+    // "Close" alternatives: within 1 vote of top, but not winners themselves
+    const alternates = entries.filter(([k, v]) => v < top && v >= top - 1 && v > 0).map(([k]) => k);
+
+    let html = '';
+
+    if (winners.length === 1) {
+      // Clear winner
+      const r = ROLES[mode][winners[0]];
+      html += `
+        <div class="result-header">
+          <div class="result-label">Play This Round</div>
+        </div>
+        <div class="result-roles">
+          <div class="result-role">
+            <div class="result-role-header">
+              <div class="result-role-name">${r.name}</div>
+              <div class="result-role-tag">Primary · ${top} vote${top > 1 ? 's' : ''}</div>
+            </div>
+            <div class="result-role-desc">${r.desc}</div>
+          </div>
+      `;
+      // 2-to-1 fallback: if there's a runner-up close behind, show it as fallback
+      if (alternates.length > 0) {
+        alternates.forEach(altKey => {
+          const altRole = ROLES[mode][altKey];
+          const altScore = scores[altKey];
+          html += `
+            <div class="result-divider">Or</div>
+            <div class="result-role alt">
+              <div class="result-role-header">
+                <div class="result-role-name">${altRole.name}</div>
+                <div class="result-role-tag">Fallback · ${altScore} vote${altScore > 1 ? 's' : ''}</div>
+              </div>
+              <div class="result-role-desc">${altRole.desc}</div>
+            </div>
+          `;
+        });
+      }
+      html += `</div>`;
+    } else {
+      // Tie — show all tied roles as either/or
+      html += `
+        <div class="result-header">
+          <div class="result-label">Either / Or · ${winners.length}-Way Tie</div>
+        </div>
+        <div class="result-roles">
+      `;
+      winners.forEach((wKey, i) => {
+        const r = ROLES[mode][wKey];
+        if (i > 0) html += `<div class="result-divider">Or</div>`;
+        html += `
+          <div class="result-role">
+            <div class="result-role-header">
+              <div class="result-role-name">${r.name}</div>
+              <div class="result-role-tag">${top} vote${top > 1 ? 's' : ''}</div>
+            </div>
+            <div class="result-role-desc">${r.desc}</div>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    }
+
+    resultSection.innerHTML = html;
+  }
+
+  // ============================================
+  // EVENTS
+  // ============================================
+  modeToggle.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const newMode = btn.dataset.mode;
+      if (newMode === mode) return;
+      mode = newMode;
+      selected.clear();
+      modeToggle.dataset.mode = mode;
+      modeToggle.querySelectorAll('.mode-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.mode === mode));
+      renderRoles();
+      renderConditions();
+      renderResult();
+    });
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    selected.clear();
+    renderConditions();
+    renderResult();
+  });
+
+  // Init
+  renderRoles();
+  renderConditions();
+  renderResult();
+</script>
+</body>
+</html>
